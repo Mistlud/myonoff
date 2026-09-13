@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>MyOnOff.HostAgent</AssemblyName>
+    <RootNamespace>MyOnOff.HostAgent</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyOnOff.Protocol\MyOnOff.Protocol.csproj" />
+  </ItemGroup>
+</Project>

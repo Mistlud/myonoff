@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+.gradle/
+.kotlin/
+android/local.properties
+android/**/build/
+*.user
+*.suo
+*.log
+artifacts/
+.validation/
+
+# Local configuration may contain the LAN authentication token.
+controller-settings.json
+appsettings.Local.json

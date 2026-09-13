@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Shared protocol and deterministic LAN state logic for MyOnOff.</Description>
+  </PropertyGroup>
+</Project>
