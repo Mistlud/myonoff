@@ -5,7 +5,10 @@
 .gradle/
 .kotlin/
 android/local.properties
+android/signing.properties
 android/**/build/
+*.jks
+*.keystore
 *.user
 *.suo
 *.log

@@ -2,6 +2,15 @@
 
 Last updated: 2026-09-13
 
+## Post-MVP UX and packaging work
+
+- Added Windows and Android Easy Mode as presentation layers over the existing polling, state and WOL paths.
+- UNKNOWN remains a neutral checking presentation; the large Easy Mode ON button appears only for a classified OFFLINE state.
+- Added a persisted Start app in Easy Mode preference on both platforms.
+- Refined the Windows normal-mode visual hierarchy without removing status details or power controls.
+- Added standard Windows publish targets, a Gradle 9.4.1 Wrapper, local Android release-signing configuration and packaging documentation.
+- Source/build validation results and remaining real-device checks are recorded below; this section does not replace the proven MVP evidence in `mds/Validation_Status.md`.
+
 ## Implemented
 
 - Shared versioned API contracts, deterministic state classifier, standard 102-byte WOL packet builder and IPv4 CIDR matcher.
@@ -15,27 +24,28 @@ Last updated: 2026-09-13
 
 ## Verified in the current environment
 
-- `scripts\static-check.ps1` passes: committed JSON, XML/XAML, PowerShell syntax, solution header, empty secret placeholder, required files and MVP source contracts.
-- `scripts\semantic-check.ps1` compiled Protocol, Host Agent and WPF C# against the installed .NET 8 runtime assemblies. WPF generated-field stubs were used in this supplemental check because XAML build targets are SDK-owned.
-- The compiled Protocol assembly executed 26 WOL, status-classification, CIDR and private-address assertions successfully.
-- `dotnet build MyOnOff.sln -c Release --no-restore -p:OutputPath=C:\ccy\myonoff\.validation\sdk-build\solution\` builds Protocol, Host Agent, Desktop Controller and tests with 0 warnings and 0 errors, including normal Desktop Controller apphost generation.
-- `dotnet test tests\MyOnOff.Protocol.Tests\MyOnOff.Protocol.Tests.csproj -c Release --no-build` passes 27 tests with 0 failures. Two tests specifically verify that an in-flight poll cannot discard a user action, cannot overwrite the action state, and cannot admit a duplicate action.
+- `scripts\static-check.ps1` passes: JSON, XML/XAML, PowerShell syntax, solution header, empty secret placeholder, required files and source contracts.
+- `scripts\semantic-check.ps1` compiles Protocol, Host Agent and WPF C# and executes 26 Protocol assertions.
+- An isolated-output Release build of `MyOnOff.sln` builds Protocol, Host Agent, Desktop Controller and tests with 0 warnings and 0 errors.
+- `dotnet test tests\MyOnOff.Protocol.Tests\MyOnOff.Protocol.Tests.csproj -c Release --no-restore` passes 30 tests with 0 failures. Existing action/polling coordination tests still pass, and three new tests fix the Easy Mode UNKNOWN/OFFLINE/BOOTING presentation contract.
+- Android `testDebugUnitTest assembleDebug` succeeds with the existing Gradle 9.4.1 and Android Studio JBR. All 6 Android unit tests pass, and the debug APK is produced at `android/app/build/outputs/apk/debug/app-debug.apk`.
+- The checked-in Gradle Wrapper 9.4.1 runs successfully. With no local signing file, `verifyReleaseSigningConfiguration` fails as designed with actionable setup guidance and does not expose a secret.
+- `scripts\publish-windows.ps1` successfully produces Host Agent self-contained, Desktop framework-dependent and Desktop self-contained executables in the documented artifact directories.
 - `git diff --check` passes with no whitespace errors.
 - `Plan.md` is byte-for-byte unchanged from commit `d1435a4` (Git object `d2fe8d1291852f6529aac1dff5d041dfac710f05`).
-- Source scan found no cloud, OAuth, media-server, transcoding, UPnP or Dynamic DNS implementation markers.
-- Manual source audit confirmed finite network timeouts, private-IPv4 target validation, Android permission re-check on resume, one-at-a-time power actions, user-action priority over routine polling and bounded transition polling.
-- No SDK or build tool was installed during this fix.
+- Existing Host Agent, network clients, WOL senders, status classifiers and action/polling coordination code were not replaced by the UX work.
+- No SDK, Android SDK, Gradle or other development tool was installed during this work.
 
 ## Not verified here
 
-- A normal in-place `dotnet build MyOnOff.sln -c Release --no-restore` could not replace the Desktop Controller EXE/DLL because an existing Desktop Controller process was running from that output directory. The full solution passed using the isolated output path documented above. Close the running controller and repeat the normal in-place build before deployment.
-- Android Gradle sync/test/APK build: Android SDK and Gradle are absent.
-- The post-fix Desktop Controller OFFLINE-to-ON path has not been exercised on the real LAN. Immediate WOL/BOOTING feedback, the success/failure log entry, wake from sleep, wake from full shutdown, Agent recovery, SMB readiness and final ONLINE state still require manual verification.
-- Existing Sleep, Shutdown and ONLINE/OFFLINE behavior must be rechecked once after the synchronization change.
-- Android build and device behavior remain outside this Windows bug-fix scope.
+- Desktop normal-mode visual layout and Easy Mode state transitions have not been inspected interactively in the new build.
+- Desktop and Android real-LAN OFFLINE -> ON -> BOOTING -> ONLINE, Sleep and Shutdown regressions must be rerun after the presentation changes.
+- Android Easy Mode and its startup preference have not been installed and checked on a real phone.
+- A real signed release APK was intentionally not built because no private local signing configuration was supplied.
+- Published Desktop executables have not been manually launched, and the documented Host Agent update procedure has not been exercised against the deployed Scheduled Task.
 
-These are verification gaps, not claimed passes. Follow `MyOnOff_Validation_Handoff.md` section 16 and `MANUAL_VALIDATION.md` for the real-device rerun.
+These are verification gaps, not claimed passes. Follow the Post-MVP section in `MANUAL_VALIDATION.md` for the real-device rerun.
 
 ## Manual results
 
-Pre-fix real-device results are recorded in `MyOnOff_Validation_Handoff.md`. Post-fix Desktop Controller results are not yet recorded.
+Proven MVP real-device results are recorded in `mds/Validation_Status.md`. Post-MVP UX and packaging results are not yet recorded.

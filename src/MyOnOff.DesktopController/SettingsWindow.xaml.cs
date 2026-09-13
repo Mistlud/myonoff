@@ -4,9 +4,12 @@ namespace MyOnOff.DesktopController;
 
 public partial class SettingsWindow : Window
 {
+    private readonly ControllerSettings _current;
+
     public SettingsWindow(ControllerSettings current, string settingsPath)
     {
         InitializeComponent();
+        _current = current;
         HostIpBox.Text = current.HostIp;
         HostMacBox.Text = current.HostMac;
         BroadcastIpBox.Text = current.BroadcastIp;
@@ -16,6 +19,7 @@ public partial class SettingsWindow : Window
         SmbShareBox.Text = current.SmbShare;
         ExpectedHostnameBox.Text = current.ExpectedHostname;
         AuthTokenBox.Password = current.AuthToken;
+        StartInEasyModeBox.IsChecked = current.StartInEasyMode;
         PathText.Text = $"Local settings file: {settingsPath}";
     }
 
@@ -31,7 +35,7 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        var candidate = new ControllerSettings
+        var candidate = _current with
         {
             HostIp = HostIpBox.Text.Trim(),
             HostMac = HostMacBox.Text.Trim(),
@@ -41,7 +45,8 @@ public partial class SettingsWindow : Window
             SmbPort = smbPort,
             SmbShare = SmbShareBox.Text.Trim(),
             ExpectedHostname = ExpectedHostnameBox.Text.Trim(),
-            AuthToken = AuthTokenBox.Password
+            AuthToken = AuthTokenBox.Password,
+            StartInEasyMode = StartInEasyModeBox.IsChecked == true
         };
 
         var errors = candidate.Validate();

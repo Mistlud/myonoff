@@ -1,50 +1,79 @@
 # MyOnOff
 
-MyOnOff is a LAN-only power controller for one Windows media host. It wakes the host with Wake-on-LAN, requests authenticated sleep or normal shutdown through a small Host Agent, and reports ONLINE only when both the Agent and SMB are ready.
+MyOnOff는 같은 로컬 네트워크에 있는 Windows 호스트 PC를 Windows 또는 Android 기기에서 제어하는 개인용 전원 관리 도구입니다.
 
-[`Plan.md`](Plan.md) is the source of truth for MVP scope. Features listed as out of scope there are intentionally not implemented.
+- Wake-on-LAN으로 절전 또는 완전 종료된 호스트를 켭니다.
+- 인증된 로컬 API로 절전과 정상 종료를 요청합니다.
+- Host Agent와 SMB 저장소가 모두 준비된 경우에만 `ONLINE`으로 표시합니다.
+- 인터넷이나 클라우드 서비스 없이 가정 내 LAN에서 동작합니다.
 
-## Repository layout
+[`Plan.md`](Plan.md)는 기존 MVP 아키텍처와 범위의 기준 문서입니다. 이후 검증·UX·패키징 요구사항은 [`mds`](mds/) 문서에 추가로 정리되어 있습니다. 이전 영문 README는 [`README_2026-09-13_EN.md`](README_2026-09-13_EN.md)에 보존했습니다.
+
+## 주요 기능
+
+### 전원 제어
+
+- **ON**: 설정된 MAC 주소로 WOL 매직 패킷을 전송합니다.
+- **Sleep**: Host Agent에 인증된 절전 요청을 보냅니다.
+- **Shutdown**: 확인 후 Host Agent에 인증된 정상 종료 요청을 보냅니다.
+- 사용자 동작은 백그라운드 상태 확인 때문에 유실되지 않으며, 처리 중 중복 동작은 차단됩니다.
+
+### 상태 판정
+
+- **OFFLINE**: LAN은 사용 가능하지만 호스트, Agent, SMB에서 유효한 응답이 없습니다.
+- **BOOTING**: 일부 네트워크 신호는 확인되지만 Agent와 SMB가 모두 준비되지 않았습니다.
+- **ONLINE**: 호환되는 Agent 응답과 SMB 준비 상태가 모두 확인되었습니다.
+- **UNKNOWN**: LAN 사용 불가, 잘못된 응답, 예상 호스트 불일치 등으로 상태를 확정할 수 없습니다.
+- **GOING TO SLEEP / SHUTTING DOWN**: 전원 요청 후 전환을 확인하는 상태입니다.
+
+### Easy Mode
+
+Windows와 Android 모두 기존 상태 확인과 WOL 로직을 그대로 사용하는 Easy Mode를 제공합니다.
+
+- `OFFLINE`: 큰 ON 버튼 표시
+- `BOOTING`: 켜지는 중이라는 진행 표시
+- `ONLINE`: 호스트 준비 완료 표시
+- `UNKNOWN`: ON 버튼 없이 중립적인 상태 확인 화면 표시
+
+Easy Mode에서는 IP, 포트, Agent, SMB, 지연시간, Sleep, Shutdown 같은 관리 정보를 숨깁니다. Settings에서 **Start app in Easy Mode**를 선택하면 다음 실행부터 Easy Mode로 시작합니다.
+
+## 구성 요소
 
 ```text
-src/MyOnOff.Protocol/           Shared API contracts, WOL packet, CIDR and state logic
-src/MyOnOff.HostAgent/          ASP.NET Core Host Agent for the target Windows PC
-src/MyOnOff.DesktopController/  WPF controller for other Windows PCs
-tests/MyOnOff.Protocol.Tests/   Deterministic shared-logic tests
-android/app/                    Kotlin and Jetpack Compose Android controller
-scripts/                        Firewall, startup and static-check helpers
-MANUAL_VALIDATION.md            Build and real-LAN acceptance procedure
-IMPLEMENTATION_STATUS.md        Current evidence and known verification gaps
-docs/API.md                     Versioned Host Agent endpoint contract
+src/MyOnOff.Protocol/           공용 API 계약, WOL 패킷, CIDR 및 상태 판정
+src/MyOnOff.HostAgent/          호스트 PC에서 실행되는 ASP.NET Core Agent
+src/MyOnOff.DesktopController/  다른 Windows PC에서 사용하는 WPF 컨트롤러
+tests/MyOnOff.Protocol.Tests/   공용 로직과 UI 상태 계약 테스트
+android/app/                    Kotlin/Jetpack Compose Android 컨트롤러
+scripts/                        빌드, 배포, 방화벽 및 자동 시작 도구
+docs/API.md                     Host Agent API 규격
+docs/PACKAGING.md               Windows/Android 패키징과 로컬 릴리스 절차
+MANUAL_VALIDATION.md            실기기 및 LAN 수동 검증 절차
+IMPLEMENTATION_STATUS.md        자동 검증 결과와 남은 확인 항목
+mds/                            후속 검증, UX 및 패키징 요구사항
 ```
 
-## Requirements
+## 개발 요구사항
 
-### Windows components
+### Windows
 
-- Windows 10/11
-- .NET 8 SDK to build
-- .NET 8 Desktop Runtime on machines running the published apps
+- Windows 10 또는 11
+- 빌드용 .NET SDK 8.0.x
+- framework-dependent Desktop Controller 실행 시 .NET 8 Desktop Runtime x64
+- self-contained 배포본은 대상 PC에 별도 .NET 설치가 필요하지 않습니다.
 
-### Android component
+### Android
 
-- Android Studio compatible with Android Gradle Plugin 9.2.1
-- JDK 17
-- Android SDK 37
-- Gradle 9.4.1
+- Android Studio 및 Android SDK 37
+- Android Gradle Plugin 9.2.1
+- Gradle Wrapper 9.4.1
+- 호환 JDK—현재 프로젝트는 Android Studio JBR 25로 검증했습니다.
 
-The Android build deliberately targets API 37 because Android 17 gates direct LAN TCP and UDP broadcast traffic behind the `ACCESS_LOCAL_NETWORK` runtime permission. The app declares and requests that permission. The selected AGP/Gradle/JDK combination follows the [AGP 9.2 compatibility table](https://developer.android.com/build/releases/agp-9-2-0-release-notes), and Compose versions use the [Compose BOM](https://developer.android.com/develop/ui/compose/bom).
+Android 17/API 37에서는 로컬 TCP와 UDP 브로드캐스트를 위해 `ACCESS_LOCAL_NETWORK` 권한이 필요합니다. 앱은 이 권한을 선언하고 실행 중 요청합니다.
 
-The repository contains Gradle build files and wrapper version metadata, but not a generated `gradle-wrapper.jar` or wrapper launch scripts because Gradle is unavailable in the current authoring environment. Build from Android Studio with Gradle 9.4.1, or from a terminal that already has that Gradle version:
+## Windows 빌드와 테스트
 
-```powershell
-cd android
-gradle test assembleDebug
-```
-
-## Build and test
-
-From the repository root:
+저장소 루트에서 실행합니다.
 
 ```powershell
 dotnet restore MyOnOff.sln
@@ -52,110 +81,129 @@ dotnet build MyOnOff.sln -c Release --no-restore
 dotnet test tests\MyOnOff.Protocol.Tests\MyOnOff.Protocol.Tests.csproj -c Release --no-build
 ```
 
-Run the no-SDK static checks at any time:
+추가 정적·의미 검사는 다음과 같습니다.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\static-check.ps1
-```
-
-On this PC, the existing Visual Studio 2022 Roslyn compiler and .NET 8 runtimes can also perform a no-SDK semantic check and execute the shared protocol self-test:
-
-```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\semantic-check.ps1
 ```
 
-That script validates Protocol and WPF C# against installed runtime assemblies. It reports Host Agent as skipped when the ASP.NET Core runtime is absent; only a normal SDK build can close that gap.
+## Windows 배포본 만들기
 
-Publish framework-dependent Windows executables:
-
-```powershell
-dotnet publish .\src\MyOnOff.HostAgent\MyOnOff.HostAgent.csproj -c Release -r win-x64 --self-contained false -o .\artifacts\host-agent
-dotnet publish .\src\MyOnOff.DesktopController\MyOnOff.DesktopController.csproj -c Release -r win-x64 --self-contained false -o .\artifacts\desktop-controller
-```
-
-## Configure the Host Agent
-
-The committed configuration has no authentication secret. On the Host PC, choose one of these approaches:
-
-1. Preferred for the SYSTEM startup task: set a machine-level environment variable named `MYONOFF_AGENT_TOKEN` to a long random value, then restart the Host Agent task.
-2. Copy `appsettings.Local.example.json` to `appsettings.Local.json` beside the published Agent, fill `Agent.AuthToken`, and restrict that file's ACL to Administrators and SYSTEM.
-
-Review these defaults before first run:
-
-```json
-{
-  "Agent": {
-    "ListenUrl": "http://0.0.0.0:5055",
-    "HostIp": "192.168.219.104",
-    "AllowedSubnet": "192.168.219.0/24",
-    "SmbPort": 445,
-    "AuthToken": ""
-  }
-}
-```
-
-The Agent listens on all local interfaces so the reserved LAN address remains usable, then rejects every non-loopback request outside `AllowedSubnet`. The Windows Firewall rule is a second LAN-only boundary. Sleep and Shutdown additionally require a fixed-time-compared Bearer token. Tokens are never written to application logs.
-
-Run the Agent interactively for the first check:
+다음 명령은 세 가지 Windows 배포본을 `artifacts/` 아래에 만듭니다.
 
 ```powershell
-$env:MYONOFF_AGENT_TOKEN = '<same-long-random-token-used-by-controllers>'
-.\artifacts\host-agent\MyOnOff.HostAgent.exe
+.\scripts\publish-windows.ps1
 ```
 
-From the Host PC, verify status in another terminal:
+```text
+artifacts/
+  host-agent-selfcontained/
+  desktop-controller/
+  desktop-controller-selfcontained/
+```
+
+일반 사용자는 선택한 Desktop Controller 디렉터리 전체를 원하는 위치에 복사한 뒤 `MyOnOff.DesktopController.exe`를 실행하면 됩니다. `dotnet run`은 개발할 때만 필요합니다.
+
+대상별 publish, 바탕화면 바로가기, Host Agent 안전 업데이트 방법은 [`docs/PACKAGING.md`](docs/PACKAGING.md)를 참고하십시오. `artifacts/`는 Git에서 제외됩니다.
+
+## Host Agent 설정
+
+저장소에는 인증 토큰이 포함되지 않습니다. 호스트 PC에서는 다음 중 하나로 토큰을 설정합니다.
+
+1. 권장: 관리자 PowerShell에서 시스템 환경 변수 `MYONOFF_AGENT_TOKEN`을 설정하고 Agent 작업을 다시 시작합니다.
+2. `appsettings.Local.example.json`을 `appsettings.Local.json`으로 복사하고 토큰을 입력한 뒤 파일 권한을 Administrators와 SYSTEM으로 제한합니다.
+
+기본 설정은 다음 환경을 기준으로 합니다.
+
+```text
+Host IP:       192.168.219.104
+Agent port:    5055
+Allowed LAN:   192.168.219.0/24
+SMB port:      445
+SMB share:     domination
+```
+
+Host Agent self-contained 배포본을 대화형으로 확인하려면 다음처럼 실행합니다.
+
+```powershell
+$env:MYONOFF_AGENT_TOKEN = '<컨트롤러와 동일한 긴 임의 토큰>'
+.\artifacts\host-agent-selfcontained\MyOnOff.HostAgent.exe
+```
+
+다른 터미널에서 상태를 확인합니다.
 
 ```powershell
 .\scripts\check-agent-status.ps1
 ```
 
-Host Agent logs are written to `%ProgramData%\MyOnOff\host-agent.log` by default.
+API 규격은 [`docs/API.md`](docs/API.md)에 있습니다. Agent 로그는 기본적으로 `%ProgramData%\MyOnOff\host-agent.log`에 기록됩니다.
 
-The exact v1 request/response and error contract is documented in [`docs/API.md`](docs/API.md).
+## 방화벽과 자동 시작
 
-## Restrict the firewall and start at boot
-
-Preview the firewall change, then run it from an elevated PowerShell window:
+관리자 PowerShell에서 먼저 변경 내용을 미리 확인한 뒤 적용합니다.
 
 ```powershell
 .\scripts\configure-host-firewall.ps1 -WhatIf
 .\scripts\configure-host-firewall.ps1
+
+.\scripts\install-host-startup.ps1 `
+  -PublishedAgentPath 'C:\myonoff\host-agent-selfcontained\MyOnOff.HostAgent.exe' `
+  -WhatIf
+
+.\scripts\install-host-startup.ps1 `
+  -PublishedAgentPath 'C:\myonoff\host-agent-selfcontained\MyOnOff.HostAgent.exe'
 ```
 
-Register the published Agent as a SYSTEM scheduled task triggered at Windows startup:
+등록된 작업은 SYSTEM 계정으로 Windows 시작 시 실행됩니다. 제거할 때는 `scripts\remove-host-startup.ps1`을 사용합니다.
+
+## 컨트롤러 설정
+
+Windows 또는 Android 앱의 **Settings**에서 다음 값을 입력합니다.
+
+- Host IP
+- 유선 Ethernet MAC 주소
+- 브로드캐스트 IP
+- WOL·Agent·SMB 포트
+- SMB 공유 이름
+- Host Agent와 동일한 인증 토큰
+- 예상 호스트 이름
+- 필요하면 Easy Mode 시작 옵션
+
+Windows 설정은 `%LocalAppData%\MyOnOff\controller-settings.json`에 저장되고 Android 설정은 앱 전용 Preferences에 저장됩니다. 인증 토큰은 로그에 기록되지 않습니다.
+
+## Android 빌드
 
 ```powershell
-.\scripts\install-host-startup.ps1 -PublishedAgentPath 'C:\path\to\host-agent\MyOnOff.HostAgent.exe' -WhatIf
-.\scripts\install-host-startup.ps1 -PublishedAgentPath 'C:\path\to\host-agent\MyOnOff.HostAgent.exe'
+cd android
+.\gradlew.bat testDebugUnitTest assembleDebug
 ```
 
-The task does not require the desktop controller to be open or a user to log in. Remove it with `scripts\remove-host-startup.ps1`.
+디버그 APK:
 
-## Configure the controllers
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-Open **Settings** in either controller and enter:
+릴리스 APK에는 로컬 서명이 필요합니다. `android/signing.properties.example`을 `android/signing.properties`로 복사하고 실제 키 저장소와 비밀번호를 로컬에서만 설정합니다.
 
-- Host IP: `192.168.219.104`
-- Host MAC: the wired Ethernet MAC address
-- Broadcast IP: `192.168.219.255`
-- Agent port: `5055`
-- SMB port: `445`
-- SMB share: `domination`
-- Authentication token: exactly the Host Agent token
-- Expected hostname: recommended; a mismatch produces UNKNOWN
+```powershell
+.\gradlew.bat verifyReleaseSigningConfiguration
+.\gradlew.bat assembleRelease
+```
 
-The Windows controller stores settings in `%LocalAppData%\MyOnOff\controller-settings.json` and logs diagnostics to `%LocalAppData%\MyOnOff\controller.log`. The Android controller uses private app preferences. Neither controller logs the token.
+키 저장소, 비밀번호, 개인 키와 실제 `signing.properties`는 Git에서 제외됩니다. 자세한 생성·설치 절차는 [`docs/PACKAGING.md`](docs/PACKAGING.md)에 있습니다.
 
-## State rules
+## 보안 원칙
 
-- **OFFLINE:** LAN is available, but the host, Agent and SMB provide no usable response.
-- **BOOTING:** at least one host signal is reachable, but Agent plus SMB are not both ready.
-- **ONLINE:** the Agent responds with compatible status and SMB TCP 445 is reachable and ready.
-- **UNKNOWN:** LAN is unavailable, status data is malformed, or the returned hostname conflicts with the configured expected host.
-- **GOING TO SLEEP / SHUTTING DOWN:** immediate feedback after an accepted action while polling continues.
+- Host Agent는 로컬 사설망 주소만 허용합니다.
+- Windows 방화벽 규칙도 로컬 서브넷으로 제한합니다.
+- Sleep과 Shutdown은 Bearer 토큰 인증이 필요합니다.
+- 토큰은 소스, URL, 로그, 배포 바이너리에 포함하지 않습니다.
+- 클라우드 로그인, 외부 인증 서버, 포트 자동 개방은 사용하지 않습니다.
 
-All network calls have finite timeouts. Power-button re-entry is suppressed. Sleep and Shutdown are disabled unless the Agent is reachable; Shutdown also asks for confirmation.
+## 검증 현황
 
-## Real-LAN verification
+기존 MVP의 Windows·Android·Host Agent 실기기 검증 결과는 [`mds/Validation_Status.md`](mds/Validation_Status.md)에 있습니다.
 
-The authoring machine has no .NET SDK, Android SDK or Gradle, and no Android/Host test devices are connected. Therefore compilation and physical power transitions were not claimed here. Follow every step in [`MANUAL_VALIDATION.md`](MANUAL_VALIDATION.md); record the result in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md).
+Easy Mode와 패키징 변경 후 자동 검증 결과 및 남은 항목은 [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md), 실제 LAN과 UI 재검증 순서는 [`MANUAL_VALIDATION.md`](MANUAL_VALIDATION.md)를 참고하십시오.

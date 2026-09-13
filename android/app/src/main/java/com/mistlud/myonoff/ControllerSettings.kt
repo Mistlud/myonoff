@@ -14,6 +14,7 @@ data class ControllerSettings(
     val expectedHostname: String = "",
     val pollIntervalSeconds: Int = 3,
     val requestTimeoutMilliseconds: Int = 2_500,
+    val startInEasyMode: Boolean = false,
 ) {
     fun hasPrivateHostIp(): Boolean = isPrivateIpv4(hostIp)
 
@@ -60,6 +61,7 @@ class SettingsStore(context: Context) {
         expectedHostname = preferences.getString("expectedHostname", null) ?: "",
         pollIntervalSeconds = preferences.getInt("pollIntervalSeconds", 3),
         requestTimeoutMilliseconds = preferences.getInt("requestTimeoutMilliseconds", 2_500),
+        startInEasyMode = preferences.getBoolean("startInEasyMode", false),
     )
 
     fun save(settings: ControllerSettings) {
@@ -75,6 +77,7 @@ class SettingsStore(context: Context) {
             .putString("expectedHostname", settings.expectedHostname)
             .putInt("pollIntervalSeconds", settings.pollIntervalSeconds)
             .putInt("requestTimeoutMilliseconds", settings.requestTimeoutMilliseconds)
+            .putBoolean("startInEasyMode", settings.startInEasyMode)
             .apply()
     }
 }

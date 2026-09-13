@@ -54,9 +54,17 @@ $requiredPaths = @(
     'Plan.md',
     'README.md',
     'MANUAL_VALIDATION.md',
+    'mds\Validation_Status.md',
+    'mds\UX_Requirements.md',
+    'mds\Packaging_Release.md',
     'docs\API.md',
+    'docs\PACKAGING.md',
+    'scripts\publish-windows.ps1',
     'src\MyOnOff.HostAgent\Program.cs',
     'src\MyOnOff.DesktopController\MainWindow.xaml',
+    'src\MyOnOff.DesktopController\EasyModePresentation.cs',
+    'android\gradlew.bat',
+    'android\gradle\wrapper\gradle-wrapper.jar',
     'android\app\src\main\java\com\mistlud\myonoff\MainActivity.kt'
 )
 foreach ($relativePath in $requiredPaths) {
@@ -73,6 +81,9 @@ $requiredSourceContracts = @(
     @{ Path = 'src\MyOnOff.Protocol\HostStateClassifier.cs'; Text = 'snapshot.AgentReachable && snapshot.SmbReachable' },
     @{ Path = 'src\MyOnOff.DesktopController\MainWindow.xaml.cs'; Text = '_operations.TryBeginAction()' },
     @{ Path = 'src\MyOnOff.DesktopController\MainWindow.xaml.cs'; Text = '_operations.ShouldApplyRefreshResult' },
+    @{ Path = 'src\MyOnOff.DesktopController\EasyModePresentation.cs'; Text = 'HostState.Offline => new("Host is off", "Press ON to wake the host.", false, true)' },
+    @{ Path = 'android\app\src\main\java\com\mistlud\myonoff\MainActivity.kt'; Text = 'HostState.OFFLINE -> EasyModePresentation' },
+    @{ Path = 'android\app\build.gradle.kts'; Text = 'verifyReleaseSigningConfiguration' },
     @{ Path = 'android\app\src\main\AndroidManifest.xml'; Text = 'android.permission.ACCESS_LOCAL_NETWORK' },
     @{ Path = 'android\app\src\main\java\com\mistlud\myonoff\HostRepository.kt'; Text = 'DatagramSocket()' },
     @{ Path = 'android\app\src\main\java\com\mistlud\myonoff\HostRepository.kt'; Text = 'setRequestProperty("Authorization"' }

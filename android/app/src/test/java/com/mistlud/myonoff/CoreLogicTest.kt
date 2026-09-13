@@ -7,6 +7,22 @@ import org.junit.Test
 
 class CoreLogicTest {
     @Test
+    fun easyModeOnlyShowsOnWhenOffline() {
+        HostState.entries.forEach { state ->
+            assertEquals(state == HostState.OFFLINE, easyModePresentation(state).showOnButton)
+        }
+    }
+
+    @Test
+    fun easyModeUnknownIsNeutral() {
+        val presentation = easyModePresentation(HostState.UNKNOWN)
+
+        assertEquals("Checking status", presentation.status)
+        assertEquals(false, presentation.showOnButton)
+        assertEquals(false, presentation.showProgress)
+    }
+
+    @Test
     fun magicPacketHasStandardLayout() {
         val packet = createMagicPacket("AA:BB:CC:DD:EE:FF")
         val mac = byteArrayOf(0xAA.toByte(), 0xBB.toByte(), 0xCC.toByte(), 0xDD.toByte(), 0xEE.toByte(), 0xFF.toByte())

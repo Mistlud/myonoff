@@ -18,5 +18,7 @@
   <ItemGroup>
     <Compile Include="..\..\src\MyOnOff.DesktopController\ControllerOperationCoordinator.cs"
              Link="ControllerOperationCoordinator.cs" />
+    <Compile Include="..\..\src\MyOnOff.DesktopController\EasyModePresentation.cs"
+             Link="EasyModePresentation.cs" />
   </ItemGroup>
 </Project>

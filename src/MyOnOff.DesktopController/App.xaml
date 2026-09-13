@@ -4,10 +4,18 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style TargetType="Button">
-            <Setter Property="Padding" Value="14,9" />
-            <Setter Property="Margin" Value="4" />
-            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="MinHeight" Value="44" />
             <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#E4E7EC" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="20" />
         </Style>
     </Application.Resources>
 </Application>

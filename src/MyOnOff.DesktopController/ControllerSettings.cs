@@ -16,6 +16,7 @@ public sealed record ControllerSettings
     public string ExpectedHostname { get; init; } = string.Empty;
     public int PollIntervalSeconds { get; init; } = 3;
     public int RequestTimeoutMilliseconds { get; init; } = 2500;
+    public bool StartInEasyMode { get; init; }
 
     public Uri AgentBaseUri => new($"http://{HostIp}:{AgentPort}", UriKind.Absolute);
 

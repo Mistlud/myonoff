@@ -99,3 +99,37 @@ SMB AC 11:
 Failures checked:
 Issues found:
 ```
+
+## Post-MVP Easy Mode and packaging validation
+
+### Desktop normal mode
+
+1. Close every running Desktop Controller before rebuilding its normal output directory.
+2. Run `dotnet build MyOnOff.sln -c Release --no-restore` and the Protocol tests.
+3. Confirm the normal screen still shows status text, IP, Agent, SMB, latency, ON, Sleep, Shutdown and Settings.
+4. Repeat OFFLINE -> ON -> BOOTING -> ONLINE, Sleep and Shutdown. Confirm the earlier polling/action race remains fixed.
+
+### Desktop Easy Mode
+
+1. Enter Easy Mode from the normal screen and return with Back to Details.
+2. Confirm UNKNOWN shows `Checking status` and no ON button.
+3. Confirm only a classified OFFLINE state shows the large ON button.
+4. Press ON and confirm immediate `Turning on` progress, no duplicate action, then ONLINE `Host is ready`.
+5. Confirm IP, ports, Agent, SMB, latency, Sleep and Shutdown are absent in Easy Mode.
+6. Enable Start app in Easy Mode, restart the published executable and confirm the preference persists.
+
+### Android Easy Mode
+
+1. Confirm the existing normal screen is materially unchanged except for Easy Mode entry and its settings preference.
+2. Repeat the UNKNOWN, OFFLINE, BOOTING and ONLINE Easy Mode checks above.
+3. Confirm Easy Mode reuses the existing WOL and polling behavior and exposes no Sleep or Shutdown control.
+4. Restart after enabling Start app in Easy Mode and confirm persistence.
+5. Repeat the previously verified normal-mode ON, Sleep and Shutdown loop.
+
+### Published artifacts
+
+1. Run `scripts\publish-windows.ps1` and verify all three documented artifact directories and executables.
+2. Launch both Desktop Controller variants directly and confirm the same local settings are loaded.
+3. Update a disposable Host Agent deployment using `docs\PACKAGING.md`; verify `/status` and `smbReady` before replacing the real deployment.
+4. Run `android\gradlew.bat testDebugUnitTest assembleDebug` and install the debug APK.
+5. Configure a private local signing file, run `verifyReleaseSigningConfiguration`, build `assembleRelease` and install the signed APK.

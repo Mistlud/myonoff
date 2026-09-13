@@ -22,6 +22,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -80,6 +82,7 @@ private fun MyOnOffApp(store: SettingsStore, repository: HostRepository) {
     ) { granted -> permissionGranted = granted }
 
     var settings by remember { mutableStateOf(store.load()) }
+    var easyMode by remember { mutableStateOf(settings.startInEasyMode) }
     var probe by remember {
         mutableStateOf(
             ProbeResult(
@@ -194,40 +197,54 @@ private fun MyOnOffApp(store: SettingsStore, repository: HostRepository) {
         }
     }
 
-    MainScreen(
-        settings = settings,
-        probe = probe,
-        busy = busy,
-        lastActionMessage = lastActionMessage,
-        permissionGranted = permissionGranted,
-        onRequestPermission = { permissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK) },
-        onRefresh = ::refresh,
-        onSettings = { showSettings = true },
-        onWake = {
-            val errors = settings.validationErrors()
-            if (errors.isEmpty()) {
-                runAction(
-                    HostState.BOOTING,
-                    { repository.wake(settings) },
-                    "Wake-on-LAN packet sent; waiting for Agent and SMB.",
-                    timeoutSeconds = 90,
-                    isComplete = { it.state == HostState.ONLINE },
-                )
-            } else {
-                probe = probe.copy(state = HostState.UNKNOWN, snapshot = probe.snapshot.copy(error = errors.joinToString(" ")))
-            }
-        },
-        onSleep = {
+    val onWake = {
+        val errors = settings.validationErrors()
+        if (errors.isEmpty()) {
             runAction(
-                HostState.GOING_TO_SLEEP,
-                { repository.sleep(settings) },
-                "Sleep request accepted; waiting for the host to become unreachable.",
-                timeoutSeconds = 45,
-                isComplete = { it.state == HostState.OFFLINE },
+                HostState.BOOTING,
+                { repository.wake(settings) },
+                "Wake-on-LAN packet sent; waiting for Agent and SMB.",
+                timeoutSeconds = 90,
+                isComplete = { it.state == HostState.ONLINE },
             )
-        },
-        onShutdown = { confirmShutdown = true },
-    )
+        } else {
+            probe = probe.copy(state = HostState.UNKNOWN, snapshot = probe.snapshot.copy(error = errors.joinToString(" ")))
+        }
+    }
+
+    if (easyMode) {
+        EasyModeScreen(
+            state = probe.state,
+            busy = busy,
+            permissionGranted = permissionGranted,
+            onRequestPermission = { permissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK) },
+            onWake = onWake,
+            onExit = { easyMode = false },
+        )
+    } else {
+        MainScreen(
+            settings = settings,
+            probe = probe,
+            busy = busy,
+            lastActionMessage = lastActionMessage,
+            permissionGranted = permissionGranted,
+            onRequestPermission = { permissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK) },
+            onRefresh = ::refresh,
+            onSettings = { showSettings = true },
+            onEasyMode = { easyMode = true },
+            onWake = onWake,
+            onSleep = {
+                runAction(
+                    HostState.GOING_TO_SLEEP,
+                    { repository.sleep(settings) },
+                    "Sleep request accepted; waiting for the host to become unreachable.",
+                    timeoutSeconds = 45,
+                    isComplete = { it.state == HostState.OFFLINE },
+                )
+            },
+            onShutdown = { confirmShutdown = true },
+        )
+    }
 
     if (showSettings) {
         SettingsDialog(
@@ -275,6 +292,7 @@ private fun MainScreen(
     onRequestPermission: () -> Unit,
     onRefresh: () -> Unit,
     onSettings: () -> Unit,
+    onEasyMode: () -> Unit,
     onWake: () -> Unit,
     onSleep: () -> Unit,
     onShutdown: () -> Unit,
@@ -293,7 +311,10 @@ private fun MainScreen(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Host PC", fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-            TextButton(onClick = onSettings, enabled = !busy) { Text("Settings") }
+            Row {
+                TextButton(onClick = onEasyMode, enabled = !busy) { Text("Easy Mode") }
+                TextButton(onClick = onSettings, enabled = !busy) { Text("Settings") }
+            }
         }
         Spacer(Modifier.height(26.dp))
         Text("● ${probe.state.name.replace('_', ' ')}", color = statusColor, fontSize = 30.sp, fontWeight = FontWeight.Bold)
@@ -349,6 +370,91 @@ private fun MainScreen(
 }
 
 @Composable
+private fun EasyModeScreen(
+    state: HostState,
+    busy: Boolean,
+    permissionGranted: Boolean,
+    onRequestPermission: () -> Unit,
+    onWake: () -> Unit,
+    onExit: () -> Unit,
+) {
+    val effectiveState = if (permissionGranted) state else HostState.UNKNOWN
+    val presentation = easyModePresentation(effectiveState)
+    val statusColor = when (effectiveState) {
+        HostState.ONLINE -> Color(0xFF12B76A)
+        HostState.BOOTING -> Color(0xFFF79009)
+        HostState.OFFLINE -> Color(0xFF667085)
+        else -> Color(0xFF98A2B3)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("MyOnOff", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            TextButton(onClick = onExit) { Text("Back to Details") }
+        }
+        Spacer(Modifier.weight(1f))
+        Text("●", color = statusColor, fontSize = 34.sp)
+        Text(presentation.status, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp))
+        Text(
+            if (permissionGranted) presentation.detail else "Local-network access is required.",
+            color = Color(0xFF667085),
+            fontSize = 16.sp,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        if (presentation.showProgress) {
+            CircularProgressIndicator(modifier = Modifier.padding(top = 28.dp))
+        }
+        if (presentation.showOnButton) {
+            Button(
+                onClick = onWake,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp).height(92.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF067647)),
+            ) { Text("ON", fontSize = 28.sp, fontWeight = FontWeight.Bold) }
+        }
+        if (!permissionGranted) {
+            OutlinedButton(onClick = onRequestPermission, modifier = Modifier.padding(top = 24.dp)) {
+                Text("Allow local network")
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Text("Version ${BuildConfig.VERSION_NAME}", color = Color(0xFF98A2B3), fontSize = 11.sp)
+    }
+}
+
+internal data class EasyModePresentation(
+    val status: String,
+    val detail: String,
+    val showProgress: Boolean,
+    val showOnButton: Boolean,
+)
+
+internal fun easyModePresentation(state: HostState): EasyModePresentation = when (state) {
+    HostState.ONLINE -> EasyModePresentation("ON", "Host is ready.", showProgress = false, showOnButton = false)
+    HostState.BOOTING -> EasyModePresentation(
+        "Turning on",
+        "Please wait while the host becomes ready.",
+        showProgress = true,
+        showOnButton = false,
+    )
+    HostState.OFFLINE -> EasyModePresentation(
+        "Host is off",
+        "Press ON to wake the host.",
+        showProgress = false,
+        showOnButton = true,
+    )
+    else -> EasyModePresentation(
+        "Checking status",
+        "Checking the local network.",
+        showProgress = false,
+        showOnButton = false,
+    )
+}
+
+@Composable
 private fun DetailRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontWeight = FontWeight.SemiBold)
@@ -371,6 +477,7 @@ private fun SettingsDialog(
     var smbShare by remember { mutableStateOf(initial.smbShare) }
     var expectedHostname by remember { mutableStateOf(initial.expectedHostname) }
     var authToken by remember { mutableStateOf(initial.authToken) }
+    var startInEasyMode by remember { mutableStateOf(initial.startInEasyMode) }
     var errorText by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -393,6 +500,11 @@ private fun SettingsDialog(
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                 )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = startInEasyMode, onCheckedChange = { startInEasyMode = it })
+                    Text("Start app in Easy Mode")
+                }
+                Text("Version ${BuildConfig.VERSION_NAME}", color = Color(0xFF667085), fontSize = 12.sp)
                 if (errorText.isNotEmpty()) Text(errorText, color = Color(0xFFF04438), fontSize = 12.sp)
             }
         },
@@ -408,6 +520,7 @@ private fun SettingsDialog(
                     smbShare = smbShare.trim(),
                     expectedHostname = expectedHostname.trim(),
                     authToken = authToken,
+                    startInEasyMode = startInEasyMode,
                 )
                 val errors = candidate.validationErrors()
                 if (errors.isEmpty()) onSave(candidate) else errorText = errors.joinToString(" ")

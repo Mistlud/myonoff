@@ -5,6 +5,8 @@ namespace MyOnOff.DesktopController;
 
 public partial class MainWindow
 {
+    private Grid NormalModePanel = null!;
+    private Grid EasyModePanel = null!;
     private TextBlock LastRefreshText = null!;
     private Ellipse StatusIndicator = null!;
     private TextBlock StatusText = null!;
@@ -17,6 +19,14 @@ public partial class MainWindow
     private Button SleepButton = null!;
     private Button ShutdownButton = null!;
     private Button SettingsButton = null!;
+    private Button EasyModeButton = null!;
+    private Ellipse EasyStatusIndicator = null!;
+    private TextBlock EasyStatusText = null!;
+    private TextBlock EasyStatusDetailText = null!;
+    private ProgressBar EasyProgress = null!;
+    private Button EasyOnButton = null!;
+    private TextBlock VersionText = null!;
+    private TextBlock EasyVersionText = null!;
 
     private void InitializeComponent()
     {
@@ -34,6 +44,7 @@ public partial class SettingsWindow
     private TextBox SmbShareBox = null!;
     private TextBox ExpectedHostnameBox = null!;
     private PasswordBox AuthTokenBox = null!;
+    private CheckBox StartInEasyModeBox = null!;
     private TextBlock PathText = null!;
 
     private void InitializeComponent()
