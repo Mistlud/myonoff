@@ -1,3 +1,4 @@
+using System.IO;
 namespace MyOnOff.DesktopController;
 
 public static class AppLog

@@ -15,4 +15,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\MyOnOff.Protocol\MyOnOff.Protocol.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\MyOnOff.DesktopController\ControllerOperationCoordinator.cs"
+             Link="ControllerOperationCoordinator.cs" />
+  </ItemGroup>
 </Project>

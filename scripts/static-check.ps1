@@ -71,6 +71,8 @@ $requiredSourceContracts = @(
     @{ Path = 'src\MyOnOff.HostAgent\Program.cs'; Text = 'app.MapPost(ApiRoutes.Shutdown' },
     @{ Path = 'src\MyOnOff.HostAgent\ControlAuthentication.cs'; Text = 'CryptographicOperations.FixedTimeEquals' },
     @{ Path = 'src\MyOnOff.Protocol\HostStateClassifier.cs'; Text = 'snapshot.AgentReachable && snapshot.SmbReachable' },
+    @{ Path = 'src\MyOnOff.DesktopController\MainWindow.xaml.cs'; Text = '_operations.TryBeginAction()' },
+    @{ Path = 'src\MyOnOff.DesktopController\MainWindow.xaml.cs'; Text = '_operations.ShouldApplyRefreshResult' },
     @{ Path = 'android\app\src\main\AndroidManifest.xml'; Text = 'android.permission.ACCESS_LOCAL_NETWORK' },
     @{ Path = 'android\app\src\main\java\com\mistlud\myonoff\HostRepository.kt'; Text = 'DatagramSocket()' },
     @{ Path = 'android\app\src\main\java\com\mistlud\myonoff\HostRepository.kt'; Text = 'setRequestProperty("Authorization"' }

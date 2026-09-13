@@ -9,7 +9,7 @@ public partial class MainWindow : Window
 {
     private readonly SettingsStore _settingsStore = new();
     private readonly HostControllerClient _client = new();
-    private readonly SemaphoreSlim _operationGate = new(1, 1);
+    private readonly ControllerOperationCoordinator _operations = new();
     private readonly DispatcherTimer _pollTimer = new();
     private ControllerSettings _settings = new();
     private ProbeResult? _lastProbe;
@@ -41,25 +41,32 @@ public partial class MainWindow : Window
 
     private async Task RefreshAsync()
     {
-        if (!await _operationGate.WaitAsync(0))
+        if (!_operations.TryBeginRefresh())
         {
             return;
         }
 
         try
         {
-            _lastProbe = await _client.ProbeAsync(_settings, CancellationToken.None);
-            RenderProbe(_lastProbe);
+            var probe = await _client.ProbeAsync(_settings, CancellationToken.None);
+            if (_operations.ShouldApplyRefreshResult)
+            {
+                _lastProbe = probe;
+                RenderProbe(probe);
+            }
         }
         catch (Exception exception)
         {
-            _lastProbe = null;
-            await ReportErrorAsync("Status check failed.", exception);
-            UpdateButtons();
+            if (_operations.ShouldApplyRefreshResult)
+            {
+                _lastProbe = null;
+                await ReportErrorAsync("Status check failed.", exception);
+                UpdateButtons();
+            }
         }
         finally
         {
-            _operationGate.Release();
+            _operations.EndRefresh();
         }
     }
 
@@ -82,6 +89,7 @@ public partial class MainWindow : Window
             "Sending Wake-on-LAN packet...",
             token => _client.SendWakeAsync(_settings, token),
             "Wake-on-LAN packet sent; waiting for Agent and SMB.",
+            "Wake-on-LAN send failed.",
             result => result.State == HostState.Online,
             TimeSpan.FromSeconds(90));
     }
@@ -93,6 +101,7 @@ public partial class MainWindow : Window
             "Requesting sleep...",
             token => _client.SendSleepAsync(_settings, token),
             "Sleep request accepted; waiting for the host to become unreachable.",
+            "Sleep request failed.",
             result => result.State == HostState.Offline,
             TimeSpan.FromSeconds(45));
     }
@@ -116,6 +125,7 @@ public partial class MainWindow : Window
             "Requesting shutdown...",
             token => _client.SendShutdownAsync(_settings, token),
             "Shutdown request accepted; waiting for the host to become unreachable.",
+            "Shutdown request failed.",
             result => result.State == HostState.Offline,
             TimeSpan.FromSeconds(45));
     }
@@ -125,10 +135,11 @@ public partial class MainWindow : Window
         string progressMessage,
         Func<CancellationToken, Task> action,
         string acceptedMessage,
+        string failureMessage,
         Func<ProbeResult, bool> isComplete,
         TimeSpan transitionTimeout)
     {
-        if (!await _operationGate.WaitAsync(0))
+        if (!_operations.TryBeginAction())
         {
             return;
         }
@@ -163,12 +174,12 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             _lastProbe = null;
-            await ReportErrorAsync("Power action failed.", exception);
+            await ReportErrorAsync(failureMessage, exception);
         }
         finally
         {
+            _operations.EndAction();
             SetBusy(false);
-            _operationGate.Release();
         }
     }
 
