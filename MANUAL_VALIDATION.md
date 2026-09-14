@@ -133,3 +133,39 @@ Issues found:
 3. Update a disposable Host Agent deployment using `docs\PACKAGING.md`; verify `/status` and `smbReady` before replacing the real deployment.
 4. Run `android\gradlew.bat testDebugUnitTest assembleDebug` and install the debug APK.
 5. Configure a private local signing file, run `verifyReleaseSigningConfiguration`, build `assembleRelease` and install the signed APK.
+
+## Final finishing-pass validation
+
+Use `mds/MyOnOff_Final_Handoff_Additional_Requirements.md` as the current acceptance baseline.
+
+### Windows presentation and icon
+
+1. Run `scripts\publish-windows.ps1` and launch each published Desktop Controller executable directly.
+2. Confirm the approved icon appears on the executable, both application windows and the taskbar. If a shortcut is created, confirm it inherits the executable icon.
+3. At normal Windows display scaling, confirm the compact main window has no clipped controls or text.
+4. Confirm the state is visually primary, the three power actions are clearly differentiated, and technical values remain available under Connection details.
+5. Open Settings and confirm Host, Wake-on-LAN, Host Agent, SMB storage and Experience are distinct groups.
+6. Save without changing values, reopen Settings and confirm every value and Start app in Easy Mode were preserved.
+7. Repeat UNKNOWN, OFFLINE, BOOTING and ONLINE Easy Mode checks; UNKNOWN must not show ON.
+
+### Android one-click build, signing and icon
+
+1. Run `scripts\build-android.ps1 -Configuration Debug` and confirm it reports Debug, version `0.1.0` and an APK below `artifacts/android/`.
+2. Install that APK and confirm the approved launcher icon has acceptable cropping on the test device.
+3. Create the private release key and local `android/signing.properties` using `docs/PACKAGING.md`.
+4. Run `scripts\build-android.ps1 -Configuration Release` and confirm the copied release APK is signed.
+5. After recording local settings, uninstall the debug build and install the release build. Re-enter the settings.
+6. Build a subsequent APK with the same key and a higher `versionCode`, then confirm it can update the installed release build in place.
+7. Confirm Android normal mode is visually unchanged, then verify Easy Mode and the ON/ONLINE path.
+
+### Final real-hardware regression
+
+Run this sequence once from the published Windows Desktop Controller:
+
+```text
+OFFLINE -> ON / WOL -> BOOTING -> ONLINE
+        -> Sleep -> ON / WOL -> ONLINE
+        -> Shutdown -> ON / WOL -> ONLINE
+```
+
+Run the most important ON -> ONLINE path once from the Android release build. These hardware checks are required before declaring the finishing pass fully accepted.

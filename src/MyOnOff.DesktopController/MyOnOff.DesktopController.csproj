@@ -5,8 +5,12 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>MyOnOff.DesktopController</AssemblyName>
     <RootNamespace>MyOnOff.DesktopController</RootNamespace>
+    <ApplicationIcon>Assets\MyOnOff.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyOnOff.Protocol\MyOnOff.Protocol.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\MyOnOff.ico" />
   </ItemGroup>
 </Project>

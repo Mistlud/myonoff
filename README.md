@@ -7,7 +7,7 @@ MyOnOff는 같은 로컬 네트워크에 있는 Windows 호스트 PC를 Windows 
 - Host Agent와 SMB 저장소가 모두 준비된 경우에만 `ONLINE`으로 표시합니다.
 - 인터넷이나 클라우드 서비스 없이 가정 내 LAN에서 동작합니다.
 
-[`Plan.md`](Plan.md)는 기존 MVP 아키텍처와 범위의 기준 문서입니다. 이후 검증·UX·패키징 요구사항은 [`mds`](mds/) 문서에 추가로 정리되어 있습니다. 이전 영문 README는 [`README_2026-09-13_EN.md`](README_2026-09-13_EN.md)에 보존했습니다.
+[`Plan.md`](Plan.md)는 기존 MVP 아키텍처와 범위의 기준 문서입니다. 현재 검증 기준과 최종 마감 요구사항은 [`MyOnOff_Final_Handoff_Additional_Requirements.md`](mds/MyOnOff_Final_Handoff_Additional_Requirements.md)를 따릅니다. 이전 영문 README는 [`README_2026-09-13_EN.md`](README_2026-09-13_EN.md)에 보존했습니다.
 
 ## 주요 기능
 
@@ -46,6 +46,7 @@ src/MyOnOff.DesktopController/  다른 Windows PC에서 사용하는 WPF 컨트�
 tests/MyOnOff.Protocol.Tests/   공용 로직과 UI 상태 계약 테스트
 android/app/                    Kotlin/Jetpack Compose Android 컨트롤러
 scripts/                        빌드, 배포, 방화벽 및 자동 시작 도구
+mds/assets/myonoff-icon-source.png  승인된 앱 아이콘 원본
 docs/API.md                     Host Agent API 규격
 docs/PACKAGING.md               Windows/Android 패키징과 로컬 릴리스 절차
 MANUAL_VALIDATION.md            실기기 및 LAN 수동 검증 절차
@@ -106,6 +107,12 @@ artifacts/
 일반 사용자는 선택한 Desktop Controller 디렉터리 전체를 원하는 위치에 복사한 뒤 `MyOnOff.DesktopController.exe`를 실행하면 됩니다. `dotnet run`은 개발할 때만 필요합니다.
 
 대상별 publish, 바탕화면 바로가기, Host Agent 안전 업데이트 방법은 [`docs/PACKAGING.md`](docs/PACKAGING.md)를 참고하십시오. `artifacts/`는 Git에서 제외됩니다.
+
+Desktop Controller 실행 파일, 창, 작업 표시줄에는 승인된 MyOnOff 아이콘이 사용됩니다. 아이콘을 다시 파생해야 할 때는 원본 디자인을 수정하지 않고 다음 명령을 실행합니다.
+
+```powershell
+.\scripts\generate-icons.ps1
+```
 
 ## Host Agent 설정
 
@@ -174,25 +181,31 @@ Windows 설정은 `%LocalAppData%\MyOnOff\controller-settings.json`에 저장되
 
 ## Android 빌드
 
+저장소 루트에서 원클릭 빌드 스크립트를 실행하면 Gradle Wrapper로 APK를 만들고 `artifacts/android/`에 복사합니다.
+
 ```powershell
-cd android
-.\gradlew.bat testDebugUnitTest assembleDebug
+.\scripts\build-android.ps1 -Configuration Debug
+.\scripts\build-android.ps1 -Configuration Release
 ```
 
-디버그 APK:
+출력 파일:
 
 ```text
-android/app/build/outputs/apk/debug/app-debug.apk
+artifacts/android/MyOnOff-<version>-debug.apk
+artifacts/android/MyOnOff-<version>-release.apk
 ```
 
-릴리스 APK에는 로컬 서명이 필요합니다. `android/signing.properties.example`을 `android/signing.properties`로 복사하고 실제 키 저장소와 비밀번호를 로컬에서만 설정합니다.
+릴리스 APK에는 영구 보관할 사용자 소유 키 저장소가 필요합니다. `android/signing.properties.example`을 `android/signing.properties`로 복사하고 실제 키 저장소와 비밀번호를 로컬에서만 설정합니다. 키 저장소를 잃으면 같은 앱의 후속 버전을 기존 설치 위에 업데이트하지 못할 수 있습니다.
 
 ```powershell
+cd android
 .\gradlew.bat verifyReleaseSigningConfiguration
-.\gradlew.bat assembleRelease
+.\gradlew.bat testDebugUnitTest
 ```
 
-키 저장소, 비밀번호, 개인 키와 실제 `signing.properties`는 Git에서 제외됩니다. 자세한 생성·설치 절차는 [`docs/PACKAGING.md`](docs/PACKAGING.md)에 있습니다.
+키 저장소, 비밀번호, 개인 키와 실제 `signing.properties`는 Git에서 제외됩니다. 최초 키 생성, 백업, debug에서 release 설치로 전환하는 방법은 [`docs/PACKAGING.md`](docs/PACKAGING.md)에 있습니다.
+
+Android 런처 아이콘은 Windows와 같은 승인 원본에서 생성된 표준 밀도별 bitmap 자산을 사용합니다. foreground/background 분리가 원본 재설계를 요구하므로 adaptive icon은 의도적으로 추가하지 않았습니다.
 
 ## 보안 원칙
 

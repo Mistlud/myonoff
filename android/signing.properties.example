@@ -1,4 +1,5 @@
 # Copy this file to signing.properties and keep the real file out of source control.
+# Store the keystore outside the repository and back it up securely.
 # storeFile may be absolute or relative to the android directory.
 storeFile=C:/secure/path/myonoff-release.jks
 storePassword=replace-locally

@@ -4,18 +4,70 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style TargetType="Button">
-            <Setter Property="Padding" Value="16,10" />
-            <Setter Property="MinHeight" Value="44" />
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
-        <Style x:Key="CardBorder" TargetType="Border">
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="9,7" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="BorderBrush" Value="#C9CED8" />
+        </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Padding" Value="9,7" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="BorderBrush" Value="#C9CED8" />
+        </Style>
+        <Style x:Key="SurfaceBorder" TargetType="Border">
             <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#E4E7EC" />
+            <Setter Property="BorderBrush" Value="#E1E5EA" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Padding" Value="20" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#C9CED8" />
+            <Setter Property="Foreground" Value="#344054" />
+        </Style>
+        <Style x:Key="PrimaryActionButton" TargetType="Button">
+            <Setter Property="Height" Value="50" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="#087A54" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#087A54" />
+        </Style>
+        <Style x:Key="SecondaryActionButton" TargetType="Button">
+            <Setter Property="Height" Value="50" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#344054" />
+            <Setter Property="BorderBrush" Value="#BFC5CF" />
+        </Style>
+        <Style x:Key="DangerActionButton" TargetType="Button">
+            <Setter Property="Height" Value="50" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="#FFF7F6" />
+            <Setter Property="Foreground" Value="#B42318" />
+            <Setter Property="BorderBrush" Value="#FDA29B" />
+        </Style>
+        <Style x:Key="SectionHeading" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#475467" />
+        </Style>
+        <Style x:Key="SecondaryText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#667085" />
         </Style>
     </Application.Resources>
 </Application>

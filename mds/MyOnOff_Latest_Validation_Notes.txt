@@ -1,0 +1,55 @@
+MyOnOff - Latest Validation Notes and Commit/Push Instructions
+
+This continues from the previous Codex implementation report.
+
+Validation completed after that report:
+
+- Re-ran scripts/publish-windows.ps1 after closing the running Desktop Controller.
+- Default artifacts/ publish completed successfully.
+- Published Desktop Controller launched successfully.
+- Existing saved settings were preserved.
+- Easy Mode still works correctly.
+- Windows application icon was verified successfully in:
+  - the EXE
+  - the application window
+  - the Windows taskbar
+- The current Windows normal-mode redesign is still not considered visually satisfactory.
+  Further Desktop visual redesign is intentionally deferred to the lowest priority.
+  Do not spend more time on visual redesign in this pass.
+
+Android validation:
+
+- Ran:
+  .\scripts\build-android.ps1 -Configuration Debug
+- Debug one-click build completed successfully.
+- The generated debug APK was installed on a real Android device.
+- Android launcher icon is applied correctly and looks acceptable on the device.
+- Existing app behavior remains functional.
+
+Release signing setup:
+
+- A persistent personal release keystore has now been created locally.
+- Local signing.properties has been filled with the actual signing values.
+- signing.properties contains secrets and MUST NOT be tracked or committed.
+- The keystore file and signing credentials must also remain outside version control.
+
+Before commit/push, please verify all of the following:
+
+1. Confirm signing.properties is ignored by Git.
+2. Confirm signing.properties is not already tracked.
+3. Confirm no keystore file, password, signing credential, or other release secret is staged or tracked.
+4. Prefer explicit checks such as:
+   - git check-ignore <path-to-signing.properties>
+   - git ls-files <path-to-signing.properties>
+   - git status
+5. Run the signed Release Android build using the configured local signing identity.
+6. Confirm the Release APK is generated successfully and copied to artifacts/android/.
+7. Re-run any lightweight final build/static checks you consider appropriate.
+8. If everything is clean, commit and push the current implementation.
+
+Important status:
+
+- Signed Release APK has NOT yet been manually installed or validated on the Android device.
+- The final WOL -> BOOTING -> ONLINE -> Sleep/Shutdown real-device regression pass is also still pending.
+- Do not claim those manual checks as completed.
+- Desktop design refinement is deferred and should not block this commit.

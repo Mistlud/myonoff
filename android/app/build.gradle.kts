@@ -66,6 +66,11 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+
+    lint {
+        // Keep APK packaging independent from uncached lint tooling; lint is run as a separate validation step.
+        checkReleaseBuilds = false
+    }
 }
 
 val verifyReleaseSigningConfiguration = tasks.register("verifyReleaseSigningConfiguration") {

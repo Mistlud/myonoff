@@ -6,9 +6,12 @@
 .kotlin/
 android/local.properties
 android/signing.properties
+android/gradle/gradle-daemon-jvm.properties
 android/**/build/
 *.jks
 *.keystore
+*.p12
+*.pfx
 *.user
 *.suo
 *.log
@@ -18,3 +21,6 @@ artifacts/
 # Local configuration may contain the LAN authentication token.
 controller-settings.json
 appsettings.Local.json
+
+# The approved canonical icon source is myonoff-icon-source.png.
+mds/assets/Codex_myonoff_112317.png

@@ -4,12 +4,18 @@ param(
     [string]$Target = 'All',
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
+    [string]$ArtifactsDirectory = 'artifacts',
     [switch]$NoRestore
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$artifactsRoot = Join-Path $repoRoot 'artifacts'
+$artifactsRoot = if ([System.IO.Path]::IsPathRooted($ArtifactsDirectory)) {
+    [System.IO.Path]::GetFullPath($ArtifactsDirectory)
+}
+else {
+    [System.IO.Path]::GetFullPath((Join-Path $repoRoot $ArtifactsDirectory))
+}
 
 function Invoke-MyOnOffPublish(
     [string]$Name,

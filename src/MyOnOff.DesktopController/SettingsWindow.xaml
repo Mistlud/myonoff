@@ -1,61 +1,142 @@
 <Window x:Class="MyOnOff.DesktopController.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MyOnOff Settings" Width="520" Height="700" ResizeMode="NoResize"
-        WindowStartupLocation="CenterOwner" Background="#F5F7FA">
-    <Grid Margin="22">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        Title="MyOnOff Settings" Width="560" Height="720" MinWidth="520" MinHeight="620"
+        WindowStartupLocation="CenterOwner" Background="#F5F6F8" Icon="Assets/MyOnOff.ico"
+        FontFamily="Segoe UI" Foreground="#101828" UseLayoutRounding="True">
+    <Window.Resources>
+        <Style x:Key="SettingsGroup" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#DDE1E7" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="0,0,0,20" />
+            <Setter Property="Margin" Value="0,0,0,20" />
+        </Style>
+        <Style x:Key="SettingsGroupTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#475467" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,5" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="26,22">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="LAN Configuration" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,14" />
-        <TextBlock Grid.Row="1" Text="Host IP" VerticalAlignment="Center" />
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="HostIpBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="2" Text="Host MAC" VerticalAlignment="Center" />
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="HostMacBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="3" Text="Broadcast IP" VerticalAlignment="Center" />
-        <TextBox Grid.Row="3" Grid.Column="1" x:Name="BroadcastIpBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="4" Text="WOL port" VerticalAlignment="Center" />
-        <TextBox Grid.Row="4" Grid.Column="1" x:Name="WolPortBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="5" Text="Agent port" VerticalAlignment="Center" />
-        <TextBox Grid.Row="5" Grid.Column="1" x:Name="AgentPortBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="6" Text="SMB port" VerticalAlignment="Center" />
-        <TextBox Grid.Row="6" Grid.Column="1" x:Name="SmbPortBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="7" Text="SMB share" VerticalAlignment="Center" />
-        <TextBox Grid.Row="7" Grid.Column="1" x:Name="SmbShareBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="8" Text="Expected hostname" VerticalAlignment="Center" />
-        <TextBox Grid.Row="8" Grid.Column="1" x:Name="ExpectedHostnameBox" Margin="0,4" Padding="7" />
-        <TextBlock Grid.Row="9" Text="Authentication token" VerticalAlignment="Center" />
-        <PasswordBox Grid.Row="9" Grid.Column="1" x:Name="AuthTokenBox" Margin="0,4" Padding="7" />
-
-        <CheckBox Grid.Row="10" Grid.ColumnSpan="2" x:Name="StartInEasyModeBox"
-                  Content="Start app in Easy Mode" Margin="0,14,0,0" />
-
-        <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Margin="0,14,0,0">
-            <TextBlock TextWrapping="Wrap" Foreground="#475467"
-                       Text="The token is stored only in your local application-data folder. Use the same value as MYONOFF_AGENT_TOKEN on the Host PC." />
-            <TextBlock x:Name="PathText" TextWrapping="Wrap" Foreground="#667085" FontSize="11" Margin="0,8,0,0" />
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="Settings" FontSize="23" FontWeight="SemiBold" />
+            <TextBlock Text="Connection values are stored only on this PC."
+                       Style="{StaticResource SecondaryText}" Margin="0,4,0,0" />
         </StackPanel>
 
-        <StackPanel Grid.Row="12" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" IsCancel="True" MinWidth="88" Margin="0,0,10,0" />
-            <Button Content="Save" Click="Save_Click" IsDefault="True" MinWidth="88" />
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,10,0">
+                <Border Style="{StaticResource SettingsGroup}">
+                    <StackPanel>
+                        <TextBlock Text="Host" Style="{StaticResource SettingsGroupTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Host IP" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="HostIpBox" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Expected hostname" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="ExpectedHostnameBox" Margin="0,4" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsGroup}">
+                    <StackPanel>
+                        <TextBlock Text="Wake-on-LAN" Style="{StaticResource SettingsGroupTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="MAC address" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="HostMacBox" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Broadcast address" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="BroadcastIpBox" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Text="WOL port" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="WolPortBox" Margin="0,4" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsGroup}">
+                    <StackPanel>
+                        <TextBlock Text="Host Agent" Style="{StaticResource SettingsGroupTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Agent port" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="AgentPortBox" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Authentication token" Style="{StaticResource FieldLabel}" />
+                            <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="AuthTokenBox" Margin="0,4" />
+                        </Grid>
+                        <TextBlock Text="Use the same token as MYONOFF_AGENT_TOKEN on the Host PC."
+                                   Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="145,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsGroup}">
+                    <StackPanel>
+                        <TextBlock Text="SMB storage" Style="{StaticResource SettingsGroupTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="SMB port" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="SmbPortBox" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Share name" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="SmbShareBox" Margin="0,4" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Margin="0,0,0,8">
+                    <TextBlock Text="Experience" Style="{StaticResource SettingsGroupTitle}" />
+                    <CheckBox x:Name="StartInEasyModeBox" Content="Start app in Easy Mode" />
+                    <TextBlock x:Name="PathText" TextWrapping="Wrap" Foreground="#98A2B3"
+                               FontSize="11" Margin="0,10,0,0" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="Cancel" IsCancel="True" Style="{StaticResource ToolbarButton}"
+                    MinWidth="86" Margin="0,0,8,0" />
+            <Button Content="Save" Click="Save_Click" IsDefault="True" MinWidth="86"
+                    Background="#344054" Foreground="White" BorderBrush="#344054" />
         </StackPanel>
     </Grid>
 </Window>

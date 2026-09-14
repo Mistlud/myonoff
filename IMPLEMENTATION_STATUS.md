@@ -1,6 +1,16 @@
 # Implementation Status
 
-Last updated: 2026-09-13
+Last updated: 2026-09-14
+
+## Final finishing pass
+
+`mds/MyOnOff_Final_Handoff_Additional_Requirements.md` is the current verified baseline and final scope document. The finishing implementation is limited to Android APK packaging/signing, approved icon integration and Windows Desktop Controller presentation.
+
+- Added `scripts/build-android.ps1` for Debug and Release APK builds through the committed Gradle Wrapper. It copies successful output to `artifacts/android/` and reports the configuration, version and final path.
+- Retained the existing ignored `android/signing.properties` workflow and expanded the first-time key generation, backup, debug-to-release transition and future update documentation.
+- Added the approved `mds/assets/myonoff-icon-source.png` as the canonical icon source and a repeatable `scripts/generate-icons.ps1` derivation workflow.
+- Embedded a seven-size ICO in the Desktop Controller executable and windows, and wired five conventional Android density resources into the manifest.
+- Reworked only the Windows XAML presentation: compact status-first normal mode, differentiated power actions, secondary connection details and grouped settings. Controller/networking code and Android normal-mode UI code were not changed.
 
 ## Post-MVP UX and packaging work
 
@@ -24,6 +34,17 @@ Last updated: 2026-09-13
 
 ## Verified in the current environment
 
+- `dotnet build MyOnOff.sln -c Release --no-restore` succeeds with 0 warnings and 0 errors after the final XAML and icon changes.
+- `dotnet test MyOnOff.sln -c Release --no-restore` passes all 30 tests with 0 failures.
+- `scripts/publish-windows.ps1 -ArtifactsDirectory '.validation\final-publish' -NoRestore` produces the Host Agent self-contained and both Desktop Controller publish variants. The alternate directory was used because the user's existing `artifacts/desktop-controller` executable was running and locking its DLL; that process was not stopped.
+- The published Desktop Controller executable exposes an associated icon that can be extracted successfully from the EXE.
+- `scripts/build-android.ps1 -Configuration Debug` succeeds through the committed Gradle Wrapper, reports version `0.1.0` and copies `artifacts/android/MyOnOff-0.1.0-debug.apk`.
+- Android `testDebugUnitTest` passes all 6 tests with 0 failures.
+- The generated ICO contains 16, 24, 32, 48, 64, 128 and 256-pixel entries. Android launcher PNGs have the expected 48, 72, 96, 144 and 192-pixel dimensions.
+- With no local signing file, the one-click Release path stops before Gradle with actionable setup guidance and does not expose credentials.
+- Release assembly is not coupled to Android Lint dependency download; Android Lint remains a separate validation command when its matching tooling is available.
+- With the user-owned local signing configuration, `scripts/build-android.ps1 -Configuration Release` succeeds and copies `artifacts/android/MyOnOff-0.1.0-release.apk`. Android SDK `apksigner` verifies one signer using APK Signature Scheme v2, and the copied APK hash matches the Gradle output.
+- `android/signing.properties` is ignored and untracked. The configured keystore exists outside the repository, no `.jks` or `.keystore` is tracked, and no signing secret was staged or printed during validation.
 - `scripts\static-check.ps1` passes: JSON, XML/XAML, PowerShell syntax, solution header, empty secret placeholder, required files and source contracts.
 - `scripts\semantic-check.ps1` compiles Protocol, Host Agent and WPF C# and executes 26 Protocol assertions.
 - An isolated-output Release build of `MyOnOff.sln` builds Protocol, Host Agent, Desktop Controller and tests with 0 warnings and 0 errors.
@@ -38,14 +59,13 @@ Last updated: 2026-09-13
 
 ## Not verified here
 
-- Desktop normal-mode visual layout and Easy Mode state transitions have not been inspected interactively in the new build.
-- Desktop and Android real-LAN OFFLINE -> ON -> BOOTING -> ONLINE, Sleep and Shutdown regressions must be rerun after the presentation changes.
-- Android Easy Mode and its startup preference have not been installed and checked on a real phone.
-- A real signed release APK was intentionally not built because no private local signing configuration was supplied.
-- Published Desktop executables have not been manually launched, and the documented Host Agent update procedure has not been exercised against the deployed Scheduled Task.
+- The signed Release APK has not yet been installed on the Android device. The debug-to-release transition and a later same-key, higher-versionCode in-place update remain user checks.
+- The final post-presentation real-LAN OFFLINE -> ON -> BOOTING -> ONLINE -> Sleep/Shutdown regression remains a manual acceptance check.
+- Further Windows normal-mode visual refinement is explicitly deferred and does not block this final commit.
+- The deferred Host Agent deployment-update flow and WAN-disconnected check remain out of the current critical path as specified by the final handoff.
 
-These are verification gaps, not claimed passes. Follow the Post-MVP section in `MANUAL_VALIDATION.md` for the real-device rerun.
+These are verification gaps, not claimed passes. Follow the Final finishing-pass validation section in `MANUAL_VALIDATION.md` for the real-device rerun.
 
 ## Manual results
 
-Proven MVP real-device results are recorded in `mds/Validation_Status.md`. Post-MVP UX and packaging results are not yet recorded.
+The proven MVP and post-MVP device results supplied by the user are recorded in `mds/Validation_Status.md`, `mds/MyOnOff_Final_Handoff_Additional_Requirements.md` and `mds/MyOnOff_Latest_Validation_Notes.txt`. The latest notes confirm the default Windows publish, published launch, settings persistence, Easy Mode, Windows icons, Android Debug install, Android launcher icon and existing Android behavior. The remaining finishing-pass checks are listed in `MANUAL_VALIDATION.md`.
