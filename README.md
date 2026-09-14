@@ -7,7 +7,7 @@ MyOnOff는 같은 로컬 네트워크에 있는 Windows 호스트 PC를 Windows 
 - Host Agent와 SMB 저장소가 모두 준비된 경우에만 `ONLINE`으로 표시합니다.
 - 인터넷이나 클라우드 서비스 없이 가정 내 LAN에서 동작합니다.
 
-[`Plan.md`](Plan.md)는 기존 MVP 아키텍처와 범위의 기준 문서입니다. 현재 검증 기준과 최종 마감 요구사항은 [`MyOnOff_Final_Handoff_Additional_Requirements.md`](mds/MyOnOff_Final_Handoff_Additional_Requirements.md)를 따릅니다. 이전 영문 README는 [`README_2026-09-13_EN.md`](README_2026-09-13_EN.md)에 보존했습니다.
+[`Plan.md`](Plan.md)는 기존 MVP 아키텍처와 범위의 기준 문서이고, 최종 마감 요구사항은 [`MyOnOff_Final_Handoff_Additional_Requirements.md`](mds/MyOnOff_Final_Handoff_Additional_Requirements.md)에 정리되어 있습니다. 현재 0.1.0의 완료 상태는 [`FINAL_STATUS.md`](FINAL_STATUS.md)를 기준으로 합니다. 이전 영문 README는 [`README_2026-09-13_EN.md`](README_2026-09-13_EN.md)에 보존했습니다.
 
 ## 주요 기능
 
@@ -203,7 +203,7 @@ cd android
 .\gradlew.bat testDebugUnitTest
 ```
 
-키 저장소, 비밀번호, 개인 키와 실제 `signing.properties`는 Git에서 제외됩니다. 최초 키 생성, 백업, debug에서 release 설치로 전환하는 방법은 [`docs/PACKAGING.md`](docs/PACKAGING.md)에 있습니다.
+키 저장소, 비밀번호, 개인 키와 실제 `signing.properties`는 Git에서 제외됩니다. 0.1.0 Release APK는 사용자 소유 키로 서명·설치되었고 keystore 백업도 완료되었습니다. 이후 버전은 같은 키를 유지하고 `versionCode`를 증가시켜야 합니다. 최초 키 생성, 백업, debug에서 release 설치로 전환하는 방법은 [`docs/PACKAGING.md`](docs/PACKAGING.md)에 있습니다.
 
 Android 런처 아이콘은 Windows와 같은 승인 원본에서 생성된 표준 밀도별 bitmap 자산을 사용합니다. foreground/background 분리가 원본 재설계를 요구하므로 adaptive icon은 의도적으로 추가하지 않았습니다.
 
@@ -215,8 +215,17 @@ Android 런처 아이콘은 Windows와 같은 승인 원본에서 생성된 표�
 - 토큰은 소스, URL, 로그, 배포 바이너리에 포함하지 않습니다.
 - 클라우드 로그인, 외부 인증 서버, 포트 자동 개방은 사용하지 않습니다.
 
-## 검증 현황
+## 검증 및 완료 현황
 
-기존 MVP의 Windows·Android·Host Agent 실기기 검증 결과는 [`mds/Validation_Status.md`](mds/Validation_Status.md)에 있습니다.
+현재 0.1.0은 다음 검증을 완료했습니다.
 
-Easy Mode와 패키징 변경 후 자동 검증 결과 및 남은 항목은 [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md), 실제 LAN과 UI 재검증 순서는 [`MANUAL_VALIDATION.md`](MANUAL_VALIDATION.md)를 참고하십시오.
+- Windows, Android, Host Agent 실제 환경 동작
+- signed Release APK 빌드·서명 검증·실기기 설치
+- keystore 백업과 signing secret의 Git 제외
+- Windows publish 실행, 설정 보존, Easy Mode와 앱 아이콘
+- Windows 전체 WOL → BOOTING → ONLINE → Sleep/Shutdown 전원 회귀
+- Android Debug/Release 빌드와 기존 앱 동작
+
+최종 완료 상태는 [`FINAL_STATUS.md`](FINAL_STATUS.md)에 있습니다. 세부 구현·자동 검사 이력은 [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md), 단계별 검증 기록은 [`mds/Validation_Status.md`](mds/Validation_Status.md)와 [`mds/MyOnOff_Latest_Validation_Notes.txt`](mds/MyOnOff_Latest_Validation_Notes.txt), 재검증 절차는 [`MANUAL_VALIDATION.md`](MANUAL_VALIDATION.md)를 참고하십시오.
+
+현재 남은 항목은 후순위 Windows 디자인 개선과 다음 Android 버전에서 동일 서명키를 이용한 인플레이스 업데이트 검증이며, 0.1.0 완료를 막는 항목은 아닙니다.
